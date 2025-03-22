@@ -32,21 +32,20 @@ defaults
 	errorfile 502 /etc/haproxy/errors/502.http
 	errorfile 503 /etc/haproxy/errors/503.http
 	errorfile 504 /etc/haproxy/errors/504.http
-frontend www-http
-    bind *:80
-    mode http
-    default_backend web-backend
-frontend www-https
-    bind *:443 ssl crt /etc/haproxy/longmaker.tech.pem
-    http-request set-header X-Forwarded-Proto https
-    acl letsencrypt-acl path_beg /.well-known/acme-challenge/
-    use_backend letsencrypt-backend if letsencrypt-acl
-    default_backend web-backend
 
-backend web-backend
-    redirect scheme https unless { ssl_fc }
-    balance roundrobin
-    server 5432-web-01 3.86.251.67:80 check
-    server 5432-web-02 44.204.65.73:80 check
-backend letsencrypt-backend
-   server letsencrypt 127.0.0.1:54321
+frontend  oreste-frontend-http
+        bind *:80
+        mode http
+	http-request redirect scheme https code 301 unless { ssl_fc }
+	http-request set-header X-Forwarded-Proto http
+        default_backend oreste-backend
+
+frontend oreste-frontend-https
+	bind *:443 ssl crt /etc/haproxy/certs/www.abizeraoreste.tech.pem
+	http-request set-header X-Forwarded-Proto https
+	default_backend oreste-backend
+
+backend oreste-backend
+        balance roundrobin
+        server 6238-web-01 54.196.216.8:80 check
+        server 6238-web-02 98.80.15.59:80 check
